@@ -149,7 +149,6 @@
                  * - Temperature Unit : Celsius °C
                  * - Timeformat : ISO 8601 (ex. YYYY-MM-DDTHH:mm)
                  * - Timezone : Azia/Tokyo
-                 * - Past Days : 2
                  */
                 const apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=35.6785&longitude=139.6823&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&current_weather=true&timezone=Asia%2FTokyo';
 
@@ -195,23 +194,31 @@
         <tbody>
     `;
                     const body = sliceArrays(hourly.weathercode, hoursOfDay)
-                        .map(weatherCodes => {
-                            while (weatherCodes.length < hoursOfDay) weatherCodes.push(100);  // 1日分に満たない配列がありうるので「不明」な値を差し込む
-                            return weatherCodes;
-                        })
+                        .map(
+                            weatherCodes => {
+                                while (weatherCodes.length < hoursOfDay) weatherCodes.push(100);  // 1日分に満たない配列がありうるので「不明」な値を差し込む
+                                return weatherCodes;
+                            }
+                        )
                         .reduce((bodyHtml, weatherCodes, index) => {
                             const rawDateTime = hourly.time[index * hoursOfDay];
                             const date = rawDateTime.replace((/T.*/u), ` (${getDay(rawDateTime)})`);
-                            const weathersHtml = weatherCodes.reduce((dateHtml, weatherCode) => `${dateHtml}<td>${generateWeatherIcon(weatherCode)}<br><font style="color:red;">20</font></td>`, '');
+                            const weathersHtml = weatherCodes.reduce((dateHtml, weatherCode) => `
+                                ${dateHtml}
+                                <td>
+                                    ${generateWeatherIcon(weatherCode)}<br>
+                                    <font style="color:red;"></font>
+                                </td>
+                                `, '');
                             return `${bodyHtml}<tr><td>${date}</td>${weathersHtml}</tr>`;
                         }, '');
 
 
                     const footer = `
-        </tbody>
-      </table>
-      <span><button type="button" id="reload">Reload</button></span>
-    `;
+                            </tbody>
+                        </table>
+                        <span><button type="button" id="reload">Reload</button></span>
+                    `;
                     return `${header}${body}${footer}`;
                 };
 
